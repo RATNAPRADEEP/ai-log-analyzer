@@ -14,6 +14,7 @@ import {
 } from "recharts";
 
 function App() {
+
   const [logStats, setLogStats] = useState({
     info: 0,
     warning: 0,
@@ -21,13 +22,21 @@ function App() {
     total: 0,
   });
 
+  const [recentLogs, setRecentLogs] = useState([]);
+
+  const [severity, setSeverity] = useState("Low");
+
+  const [status, setStatus] = useState("Recovered");
+
+  const [aiScore, setAiScore] = useState(95);
+
   const [recoveryData, setRecoveryData] = useState([
-    { time: "10:00", incidents: 82, errors: 3 },
-    { time: "11:00", incidents: 78, errors: 5 },
-    { time: "12:00", incidents: 72, errors: 4 },
-    { time: "13:00", incidents: 55, errors: 2 },
-    { time: "14:00", incidents: 60, errors: 3 },
-    { time: "15:00", incidents: 58, errors: 1 },
+    { time: "10:00", incidents: 80, errors: 2 },
+    { time: "11:00", incidents: 72, errors: 2 },
+    { time: "12:00", incidents: 64, errors: 1 },
+    { time: "13:00", incidents: 58, errors: 1 },
+    { time: "14:00", incidents: 50, errors: 0 },
+    { time: "15:00", incidents: 42, errors: 0 },
   ]);
 
   const [workflowData, setWorkflowData] = useState([
@@ -36,9 +45,8 @@ function App() {
     { name: "ERROR", value: 0 },
   ]);
 
-  const aiScore = 74;
-
   const handleFileUpload = (event) => {
+
     const file = event.target.files[0];
 
     if (!file) return;
@@ -46,20 +54,47 @@ function App() {
     const reader = new FileReader();
 
     reader.onload = (e) => {
+
       const content = e.target.result;
 
-      const lines = content.split("\n");
+      const lines = content
+        .split("\n")
+        .filter((line) => line.trim() !== "");
 
       let info = 0;
       let warning = 0;
       let error = 0;
 
-      lines.forEach((line) => {
+      const parsedLogs = [];
+
+      lines.forEach((line, index) => {
+
         const upperLine = line.toUpperCase();
 
-        if (upperLine.includes("INFO")) info++;
-        if (upperLine.includes("WARNING")) warning++;
-        if (upperLine.includes("ERROR")) error++;
+        let type = "UNKNOWN";
+
+        if (upperLine.includes("ERROR")) {
+
+          error++;
+          type = "ERROR";
+
+        } else if (upperLine.includes("WARNING")) {
+
+          warning++;
+          type = "WARNING";
+
+        } else if (upperLine.includes("INFO")) {
+
+          info++;
+          type = "INFO";
+        }
+
+        parsedLogs.push({
+          id: index + 1,
+          type,
+          message: line,
+        });
+
       });
 
       const total = lines.length;
@@ -71,54 +106,118 @@ function App() {
         total,
       });
 
+      setRecentLogs(parsedLogs.slice(-8).reverse());
+
       setWorkflowData([
         { name: "INFO", value: info },
         { name: "WARNING", value: warning },
         { name: "ERROR", value: error },
       ]);
 
+      if (error >= 5) {
+
+        setSeverity("High");
+        setStatus("Critical");
+        setAiScore(45);
+
+      } else if (error >= 2) {
+
+        setSeverity("Medium");
+        setStatus("Investigating");
+        setAiScore(74);
+
+      } else {
+
+        setSeverity("Low");
+        setStatus("Recovered");
+        setAiScore(95);
+      }
+
       setRecoveryData([
-        { time: "10:00", incidents: total, errors: error },
-        { time: "11:00", incidents: total - 5, errors: error },
-        { time: "12:00", incidents: total - 10, errors: error - 1 },
-        { time: "13:00", incidents: total - 15, errors: error - 1 },
-        { time: "14:00", incidents: total - 20, errors: error - 2 },
-        { time: "15:00", incidents: total - 25, errors: error - 2 },
+
+        {
+          time: "10:00",
+          incidents: total,
+          errors: error,
+        },
+
+        {
+          time: "11:00",
+          incidents: Math.max(total - 5, 0),
+          errors: Math.max(error, 0),
+        },
+
+        {
+          time: "12:00",
+          incidents: Math.max(total - 10, 0),
+          errors: Math.max(error - 1, 0),
+        },
+
+        {
+          time: "13:00",
+          incidents: Math.max(total - 15, 0),
+          errors: Math.max(error - 1, 0),
+        },
+
+        {
+          time: "14:00",
+          incidents: Math.max(total - 20, 0),
+          errors: Math.max(error - 2, 0),
+        },
+
+        {
+          time: "15:00",
+          incidents: Math.max(total - 25, 0),
+          errors: Math.max(error - 2, 0),
+        },
+
       ]);
+
     };
 
     reader.readAsText(file);
   };
 
   return (
+
     <div className="app">
+
       <div className="overlay"></div>
 
       <header className="hero">
+
         <h1>AI Log Analyzer</h1>
 
         <p>
-          Intelligent Log Monitoring & Incident Detection Dashboard
+          Intelligent Log Monitoring &
+          Incident Detection Dashboard
         </p>
 
         <div className="hero-buttons">
+
           <button className="primary-btn">
             Analyze Logs
           </button>
 
           <label className="secondary-btn">
+
             Upload File
+
             <input
               type="file"
               accept=".log,.txt,.json"
               onChange={handleFileUpload}
               hidden
             />
+
           </label>
+
         </div>
+
       </header>
 
       <section className="stats-grid">
+
         <div className="card glow-blue">
           <h3>Total Logs</h3>
           <h1>{logStats.total}</h1>
@@ -138,20 +237,24 @@ function App() {
           <h3>Info Logs</h3>
           <h1>{logStats.info}</h1>
         </div>
+
       </section>
 
       <section className="main-grid">
+
         <div className="big-card">
+
           <h2>AI Incident Analysis</h2>
 
           <div className="analysis-row">
+
             <div>
               <span className="label">
                 Incident Severity
               </span>
 
               <h3 className="danger">
-                {logStats.error > 5 ? "High" : "Medium"}
+                {severity}
               </h3>
             </div>
 
@@ -164,27 +267,32 @@ function App() {
             </div>
 
             <div>
-              <span className="label">Status</span>
+              <span className="label">
+                Status
+              </span>
 
               <h3 className="success">
-                {logStats.error > 0
-                  ? "Investigating"
-                  : "Recovered"}
+                {status}
               </h3>
             </div>
+
           </div>
 
           <div className="analysis-box">
+
             <h4>AI Root Cause Detection</h4>
 
             <p>
-              Dynamic log analysis detected anomaly patterns,
-              infrastructure instability, and operational
-              incident correlations from uploaded logs.
+              Dynamic AI log analysis detected
+              anomaly patterns, retry instability,
+              infrastructure issues, and operational
+              failures from uploaded logs.
             </p>
+
           </div>
 
           <div className="timeline">
+
             <div className="timeline-item success-item">
               ✓ File Uploaded
             </div>
@@ -194,16 +302,19 @@ function App() {
             </div>
 
             <div className="timeline-item success-item">
-              ✓ Incident Analysis Generated
+              ✓ AI Analysis Generated
             </div>
 
             <div className="timeline-item pending-item">
               ⏳ Awaiting Final Validation
             </div>
+
           </div>
+
         </div>
 
         <div className="side-card">
+
           <h2>AI Scoring Engine</h2>
 
           <div className="score-circle">
@@ -212,32 +323,44 @@ function App() {
 
           <p>
             AI operational scoring based on anomaly
-            frequency, retry instability, infrastructure
-            health, and incident correlations.
+            frequency, infrastructure health,
+            retry instability, and incident correlation.
           </p>
 
           <div className="risk-box">
+
             <span>Operational Risk</span>
 
-            <h3>
-              {logStats.error > 5 ? "High" : "Medium"}
-            </h3>
+            <h3>{severity}</h3>
+
           </div>
+
         </div>
+
       </section>
 
       <section className="chart-grid">
+
         <div className="chart-card">
+
           <h2>Incident Recovery Analytics</h2>
 
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer
+            width="100%"
+            height={300}
+          >
+
             <LineChart data={recoveryData}>
+
               <CartesianGrid
                 strokeDasharray="3 3"
                 stroke="#233"
               />
 
-              <XAxis dataKey="time" stroke="#ccc" />
+              <XAxis
+                dataKey="time"
+                stroke="#ccc"
+              />
 
               <YAxis stroke="#ccc" />
 
@@ -256,21 +379,33 @@ function App() {
                 stroke="#ff6ec7"
                 strokeWidth={3}
               />
+
             </LineChart>
+
           </ResponsiveContainer>
+
         </div>
 
         <div className="chart-card">
+
           <h2>Log Severity Analytics</h2>
 
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer
+            width="100%"
+            height={300}
+          >
+
             <BarChart data={workflowData}>
+
               <CartesianGrid
                 strokeDasharray="3 3"
                 stroke="#233"
               />
 
-              <XAxis dataKey="name" stroke="#ccc" />
+              <XAxis
+                dataKey="name"
+                stroke="#ccc"
+              />
 
               <YAxis stroke="#ccc" />
 
@@ -281,19 +416,88 @@ function App() {
                 fill="#67f8f8"
                 radius={[10, 10, 0, 0]}
               />
+
             </BarChart>
+
           </ResponsiveContainer>
+
         </div>
+
+      </section>
+
+      <section className="logs-section">
+
+        <div className="logs-card">
+
+          <h2>Recent Log Events</h2>
+
+          <table className="log-table">
+
+            <thead>
+
+              <tr>
+                <th>ID</th>
+                <th>Type</th>
+                <th>Message</th>
+              </tr>
+
+            </thead>
+
+            <tbody>
+
+              {recentLogs.length > 0 ? (
+
+                recentLogs.map((log) => (
+
+                  <tr key={log.id}>
+
+                    <td>{log.id}</td>
+
+                    <td className={log.type.toLowerCase()}>
+                      {log.type}
+                    </td>
+
+                    <td>{log.message}</td>
+
+                  </tr>
+
+                ))
+
+              ) : (
+
+                <tr>
+
+                  <td
+                    colSpan="3"
+                    className="empty-state"
+                  >
+                    Upload a log file to view parsed events
+                  </td>
+
+                </tr>
+
+              )}
+
+            </tbody>
+
+          </table>
+
+        </div>
+
       </section>
 
       <section className="upload-card">
+
         <h2>Upload Log File</h2>
 
         <div className="upload-box">
-          <p>Upload .log / .txt / .json File</p>
+
+          <p>
+            Upload .log / .txt / .json File
+          </p>
 
           <span>
-            Dynamic AI Log Parsing Enabled
+            Real-Time Dynamic AI Log Parsing Enabled
           </span>
 
           <input
@@ -301,8 +505,11 @@ function App() {
             accept=".log,.txt,.json"
             onChange={handleFileUpload}
           />
+
         </div>
+
       </section>
+
     </div>
   );
 }

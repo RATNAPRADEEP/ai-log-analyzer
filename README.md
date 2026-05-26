@@ -2,6 +2,10 @@
 
 AI-powered log monitoring and incident detection dashboard built using React.js and Recharts.
 
+## Live Demo
+
+https://ai-log-analyzer-two.vercel.app/
+
 ## Features
 
 - AI Incident Analysis Dashboard

@@ -2,6 +2,9 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  transition: background 0.3s ease,
+              transform 0.3s ease,
+              box-shadow 0.3s ease;
 }
 
 body {
@@ -95,11 +98,6 @@ body {
   background: rgba(20, 30, 80, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(12px);
-  transition: 0.3s;
-}
-
-.card:hover {
-  transform: translateY(-6px);
 }
 
 .card h3 {
@@ -139,18 +137,21 @@ body {
 .big-card,
 .side-card,
 .chart-card,
-.upload-card {
+.upload-card,
+.logs-card {
   background: rgba(14, 22, 60, 0.88);
   border-radius: 24px;
   padding: 30px;
   border: 1px solid rgba(255, 255, 255, 0.06);
   box-shadow: 0 0 25px rgba(0, 140, 255, 0.12);
+  backdrop-filter: blur(12px);
 }
 
 .big-card h2,
 .side-card h2,
 .chart-card h2,
-.upload-card h2 {
+.upload-card h2,
+.logs-card h2 {
   margin-bottom: 24px;
   font-size: 34px;
   color: white;
@@ -269,13 +270,45 @@ body {
   margin-bottom: 30px;
 }
 
+.logs-section {
+  margin-bottom: 30px;
+}
+
+.log-table {
+  width: 100%;
+  border-collapse: collapse;
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+.log-table thead {
+  background: rgba(0, 255, 255, 0.08);
+}
+
+.log-table th {
+  padding: 18px;
+  text-align: left;
+  color: #8fe8ff;
+  font-size: 15px;
+}
+
+.log-table td {
+  padding: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  color: #dce7ff;
+  font-size: 14px;
+}
+
+.log-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
 .upload-box {
   margin-top: 20px;
   border: 2px dashed rgba(255, 255, 255, 0.2);
   border-radius: 20px;
   padding: 60px;
   text-align: center;
-  transition: 0.3s;
 }
 
 .upload-box:hover {
@@ -293,8 +326,53 @@ body {
   color: #8db8ff;
 }
 
-.recharts-tooltip-wrapper {
-  outline: none;
+.upload-box input {
+  margin-top: 20px;
+  color: white;
+}
+
+.error {
+  color: #ff6ec7;
+  font-weight: bold;
+}
+
+.warning {
+  color: #ffd166;
+  font-weight: bold;
+}
+
+.info {
+  color: #67f8a8;
+  font-weight: bold;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 30px;
+  color: #8fb4ff;
+}
+
+.card:hover,
+.big-card:hover,
+.side-card:hover,
+.chart-card:hover,
+.logs-card:hover,
+.upload-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 0 35px rgba(0, 200, 255, 0.25);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #081120;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #00d2ff;
+  border-radius: 10px;
 }
 
 @media (max-width: 1000px) {
@@ -309,6 +387,7 @@ body {
 }
 
 @media (max-width: 700px) {
+
   .app {
     padding: 18px;
   }
@@ -328,7 +407,8 @@ body {
   .big-card h2,
   .side-card h2,
   .chart-card h2,
-  .upload-card h2 {
+  .upload-card h2,
+  .logs-card h2 {
     font-size: 28px;
   }
 
@@ -343,5 +423,10 @@ body {
 
   .score-circle h1 {
     font-size: 36px;
+  }
+
+  .log-table {
+    display: block;
+    overflow-x: auto;
   }
 }
