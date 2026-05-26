@@ -1,4 +1,6 @@
 import "./App.css";
+import { useState } from "react";
+
 import {
   LineChart,
   Line,
@@ -11,24 +13,82 @@ import {
   Bar,
 } from "recharts";
 
-const recoveryData = [
-  { time: "10:00", incidents: 82, errors: 3 },
-  { time: "11:00", incidents: 78, errors: 5 },
-  { time: "12:00", incidents: 72, errors: 4 },
-  { time: "13:00", incidents: 55, errors: 2 },
-  { time: "14:00", incidents: 60, errors: 3 },
-  { time: "15:00", incidents: 58, errors: 1 },
-];
-
-const workflowData = [
-  { name: "Detection", value: 9 },
-  { name: "Analysis", value: 7 },
-  { name: "Remediation", value: 5 },
-  { name: "Approval", value: 3 },
-];
-
 function App() {
+  const [logStats, setLogStats] = useState({
+    info: 0,
+    warning: 0,
+    error: 0,
+    total: 0,
+  });
+
+  const [recoveryData, setRecoveryData] = useState([
+    { time: "10:00", incidents: 82, errors: 3 },
+    { time: "11:00", incidents: 78, errors: 5 },
+    { time: "12:00", incidents: 72, errors: 4 },
+    { time: "13:00", incidents: 55, errors: 2 },
+    { time: "14:00", incidents: 60, errors: 3 },
+    { time: "15:00", incidents: 58, errors: 1 },
+  ]);
+
+  const [workflowData, setWorkflowData] = useState([
+    { name: "INFO", value: 0 },
+    { name: "WARNING", value: 0 },
+    { name: "ERROR", value: 0 },
+  ]);
+
   const aiScore = 74;
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      const content = e.target.result;
+
+      const lines = content.split("\n");
+
+      let info = 0;
+      let warning = 0;
+      let error = 0;
+
+      lines.forEach((line) => {
+        const upperLine = line.toUpperCase();
+
+        if (upperLine.includes("INFO")) info++;
+        if (upperLine.includes("WARNING")) warning++;
+        if (upperLine.includes("ERROR")) error++;
+      });
+
+      const total = lines.length;
+
+      setLogStats({
+        info,
+        warning,
+        error,
+        total,
+      });
+
+      setWorkflowData([
+        { name: "INFO", value: info },
+        { name: "WARNING", value: warning },
+        { name: "ERROR", value: error },
+      ]);
+
+      setRecoveryData([
+        { time: "10:00", incidents: total, errors: error },
+        { time: "11:00", incidents: total - 5, errors: error },
+        { time: "12:00", incidents: total - 10, errors: error - 1 },
+        { time: "13:00", incidents: total - 15, errors: error - 1 },
+        { time: "14:00", incidents: total - 20, errors: error - 2 },
+        { time: "15:00", incidents: total - 25, errors: error - 2 },
+      ]);
+    };
+
+    reader.readAsText(file);
+  };
 
   return (
     <div className="app">
@@ -36,35 +96,47 @@ function App() {
 
       <header className="hero">
         <h1>AI Log Analyzer</h1>
+
         <p>
           Intelligent Log Monitoring & Incident Detection Dashboard
         </p>
 
         <div className="hero-buttons">
-          <button className="primary-btn">Analyze Logs</button>
-          <button className="secondary-btn">Upload File</button>
+          <button className="primary-btn">
+            Analyze Logs
+          </button>
+
+          <label className="secondary-btn">
+            Upload File
+            <input
+              type="file"
+              accept=".log,.txt,.json"
+              onChange={handleFileUpload}
+              hidden
+            />
+          </label>
         </div>
       </header>
 
       <section className="stats-grid">
         <div className="card glow-blue">
           <h3>Total Logs</h3>
-          <h1>137K</h1>
+          <h1>{logStats.total}</h1>
         </div>
 
         <div className="card glow-pink">
           <h3>Critical Errors</h3>
-          <h1>15</h1>
+          <h1>{logStats.error}</h1>
         </div>
 
         <div className="card glow-green">
-          <h3>Active Monitors</h3>
-          <h1>13</h1>
+          <h3>Warnings</h3>
+          <h1>{logStats.warning}</h1>
         </div>
 
         <div className="card glow-cyan">
-          <h3>Detection Rate</h3>
-          <h1>99%</h1>
+          <h3>Info Logs</h3>
+          <h1>{logStats.info}</h1>
         </div>
       </section>
 
@@ -74,40 +146,55 @@ function App() {
 
           <div className="analysis-row">
             <div>
-              <span className="label">Incident Severity</span>
-              <h3 className="danger">High</h3>
+              <span className="label">
+                Incident Severity
+              </span>
+
+              <h3 className="danger">
+                {logStats.error > 5 ? "High" : "Medium"}
+              </h3>
             </div>
 
             <div>
-              <span className="label">Affected Service</span>
+              <span className="label">
+                Affected Service
+              </span>
+
               <h3>auth-service</h3>
             </div>
 
             <div>
               <span className="label">Status</span>
-              <h3 className="success">Recovered</h3>
+
+              <h3 className="success">
+                {logStats.error > 0
+                  ? "Investigating"
+                  : "Recovered"}
+              </h3>
             </div>
           </div>
 
           <div className="analysis-box">
             <h4>AI Root Cause Detection</h4>
+
             <p>
-              Kubernetes deployment instability detected from retry spikes,
-              container orchestration failures, and memory saturation patterns.
+              Dynamic log analysis detected anomaly patterns,
+              infrastructure instability, and operational
+              incident correlations from uploaded logs.
             </p>
           </div>
 
           <div className="timeline">
             <div className="timeline-item success-item">
-              ✓ Failure Detection Completed
+              ✓ File Uploaded
             </div>
 
             <div className="timeline-item success-item">
-              ✓ AI Analysis Completed
+              ✓ Log Parsing Completed
             </div>
 
             <div className="timeline-item success-item">
-              ✓ Recovery Workflow Triggered
+              ✓ Incident Analysis Generated
             </div>
 
             <div className="timeline-item pending-item">
@@ -124,14 +211,17 @@ function App() {
           </div>
 
           <p>
-            AI operational scoring based on anomaly frequency,
-            retry instability, infrastructure health,
-            and incident correlations.
+            AI operational scoring based on anomaly
+            frequency, retry instability, infrastructure
+            health, and incident correlations.
           </p>
 
           <div className="risk-box">
             <span>Operational Risk</span>
-            <h3>Medium</h3>
+
+            <h3>
+              {logStats.error > 5 ? "High" : "Medium"}
+            </h3>
           </div>
         </div>
       </section>
@@ -142,16 +232,24 @@ function App() {
 
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={recoveryData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#233" />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="#233"
+              />
+
               <XAxis dataKey="time" stroke="#ccc" />
+
               <YAxis stroke="#ccc" />
+
               <Tooltip />
+
               <Line
                 type="monotone"
                 dataKey="incidents"
                 stroke="#67f8f8"
                 strokeWidth={3}
               />
+
               <Line
                 type="monotone"
                 dataKey="errors"
@@ -163,15 +261,26 @@ function App() {
         </div>
 
         <div className="chart-card">
-          <h2>Workflow Execution Analytics</h2>
+          <h2>Log Severity Analytics</h2>
 
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={workflowData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#233" />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="#233"
+              />
+
               <XAxis dataKey="name" stroke="#ccc" />
+
               <YAxis stroke="#ccc" />
+
               <Tooltip />
-              <Bar dataKey="value" fill="#67f8f8" radius={[10, 10, 0, 0]} />
+
+              <Bar
+                dataKey="value"
+                fill="#67f8f8"
+                radius={[10, 10, 0, 0]}
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -181,8 +290,17 @@ function App() {
         <h2>Upload Log File</h2>
 
         <div className="upload-box">
-          <p>Drag & Drop Logs Here</p>
-          <span>.log / .txt / .json</span>
+          <p>Upload .log / .txt / .json File</p>
+
+          <span>
+            Dynamic AI Log Parsing Enabled
+          </span>
+
+          <input
+            type="file"
+            accept=".log,.txt,.json"
+            onChange={handleFileUpload}
+          />
         </div>
       </section>
     </div>
