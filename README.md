@@ -22,13 +22,13 @@ AI-powered log monitoring and incident detection dashboard built using React.js 
 ## Screenshots
 
 ### Dashboard Overview
-![Dashboard](./screenshots/dashboard-overview.png)
+![Dashboard](screenshots/dashboard-overview.png)
 
 ### Analytics Dashboard
-![Analytics](./screenshots/analytics-dashboard.png)
+![Analytics](screenshots/analytics-dashboard.png)
 
 ### Upload Log Section
-![Upload](./screenshots/upload-log-section.png)
+![Upload](screenshots/upload-log-section.png)
 
 ## Installation
 
